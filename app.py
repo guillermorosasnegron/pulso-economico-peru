@@ -15,6 +15,7 @@ st.set_page_config(
 
 st.title("Pulso Económico Perú")
 st.caption("Datos del BCRP actualizados al día de hoy")
+st.info("Los datos provienen del BCRP. Este análisis es informativo y no constituye asesoría financiera certificada.")
 
 BCRP_BASE = "https://estadisticas.bcrp.gob.pe/estadisticas/series/api"
 
@@ -279,5 +280,10 @@ Reglas:
         )
 
     briefing = response.choices[0].message.content
+    st.divider()
     st.subheader("Tu briefing de hoy")
+    st.caption(f"Generado el {datetime.today().strftime('%d/%m/%Y')} con datos del BCRP")
+    st.markdown(briefing)
+    st.divider()
+    st.caption("Fuente de datos: Banco Central de Reserva del Perú (BCRP) · estadisticas.bcrp.gob.pe")
     st.markdown(briefing)
