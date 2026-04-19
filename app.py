@@ -4,18 +4,21 @@ import pandas as pd
 from openai import OpenAI
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
+import plotly.graph_objects as go
 
 load_dotenv()
 
 st.set_page_config(
     page_title="Pulso Económico Perú",
     page_icon="🇵🇪",
-    layout="centered"
+    layout="wide"
 )
 
-st.title("Pulso Económico Perú")
-st.caption("Datos del BCRP actualizados al día de hoy")
-st.info("Los datos provienen del BCRP. Este análisis es informativo y no constituye asesoría financiera certificada.")
+st.markdown("""
+    <style>
+        .block-container { padding-top: 1rem; }
+    </style>
+""", unsafe_allow_html=True)
 
 BCRP_BASE = "https://estadisticas.bcrp.gob.pe/estadisticas/series/api"
 
@@ -65,7 +68,7 @@ def fetch_serie(codigo, fecha_inicio, fecha_fin):
         if not df.empty:
             df = df.sort_values("fecha").reset_index(drop=True)
         return df
-    except Exception as e:
+    except Exception:
         return pd.DataFrame()
 
 def get_valor_hace_n_dias(df, n_dias):
@@ -82,21 +85,18 @@ def cargar_datos():
     fecha_fin = hoy.strftime("%Y-%m-%d")
     fecha_inicio_45 = (hoy - timedelta(days=45)).strftime("%Y-%m-%d")
 
-    SERIES_DIARIAS = {
+    datos_diarios = {}
+    for nombre, codigo in {
         "tipo_cambio_venta":  "PD04638PD",
         "tipo_cambio_compra": "PD04637PD",
-    }
-    SERIES_MENSUALES = {
-        "inflacion_12meses":  "PN01273PM",
-        "tasa_interbancaria": "PN07819NM",
-    }
-
-    datos_diarios = {}
-    for nombre, codigo in SERIES_DIARIAS.items():
+    }.items():
         datos_diarios[nombre] = fetch_serie(codigo, fecha_inicio_45, fecha_fin)
 
     datos_mensuales = {}
-    for nombre, codigo in SERIES_MENSUALES.items():
+    for nombre, codigo in {
+        "inflacion_12meses":  "PN01273PM",
+        "tasa_interbancaria": "PN07819NM",
+    }.items():
         datos_mensuales[nombre] = fetch_serie(codigo, "2025-01-01", fecha_fin)
 
     return datos_diarios, datos_mensuales
@@ -104,11 +104,11 @@ def cargar_datos():
 def construir_resumen(datos_diarios, datos_mensuales):
     resumen = []
 
-    df_venta     = datos_diarios["tipo_cambio_venta"]
-    ultimo       = df_venta.iloc[-1]
-    penultimo    = df_venta.iloc[-2]
-    hace7        = get_valor_hace_n_dias(df_venta, 7)
-    hace30       = get_valor_hace_n_dias(df_venta, 30)
+    df_venta  = datos_diarios["tipo_cambio_venta"]
+    ultimo    = df_venta.iloc[-1]
+    penultimo = df_venta.iloc[-2]
+    hace7     = get_valor_hace_n_dias(df_venta, 7)
+    hace30    = get_valor_hace_n_dias(df_venta, 30)
 
     resumen.append({
         "indicador":    "Tipo de cambio venta",
@@ -145,145 +145,129 @@ def construir_resumen(datos_diarios, datos_mensuales):
 
     return pd.DataFrame(resumen)
 
+# ── Header ──
+st.title("🇵🇪 Pulso Económico Perú")
+st.caption(f"Datos del BCRP · Última actualización: {datetime.today().strftime('%d/%m/%Y %H:%M')}")
+st.info("Los datos provienen del BCRP. Este análisis es informativo y no constituye asesoría financiera certificada.")
+
 # ── Carga de datos ──
 with st.spinner("Cargando datos del BCRP..."):
     datos_diarios, datos_mensuales = cargar_datos()
     df_resumen = construir_resumen(datos_diarios, datos_mensuales)
 
-# ── Métricas principales ──
-st.subheader("Indicadores del día")
-
-col1, col2, col3 = st.columns(3)
-
-tc = df_resumen[df_resumen["indicador"] == "Tipo de cambio venta"].iloc[0]
-inf = df_resumen[df_resumen["indicador"] == "Inflacion 12 meses"].iloc[0]
+tc   = df_resumen[df_resumen["indicador"] == "Tipo de cambio venta"].iloc[0]
+inf  = df_resumen[df_resumen["indicador"] == "Inflacion 12 meses"].iloc[0]
 tasa = df_resumen[df_resumen["indicador"] == "Tasa interbancaria"].iloc[0]
 
-col1.metric(
-    label="Tipo de cambio venta",
-    value=f"S/ {tc['valor_actual']}",
-    delta=f"{tc['var_1d']:+.4f} vs ayer"
-)
+# ── Layout 2 columnas ──
+col_izq, col_der = st.columns([1, 1.4])
 
-col2.metric(
-    label="Inflación 12 meses",
-    value=f"{inf['valor_actual']}%",
-    delta=f"{inf['var_30d']:+.2f} vs mes anterior"
-)
+# ── Columna izquierda: métricas + gráfica ──
+with col_izq:
+    st.subheader("Indicadores del día")
 
-col3.metric(
-    label="Tasa interbancaria",
-    value=f"{tasa['valor_actual']}%",
-    delta=f"{tasa['var_30d']:+.2f} vs mes anterior"
-)
+    m1, m2, m3 = st.columns(3)
+    m1.metric(
+        label="Tipo de cambio venta",
+        value=f"S/ {tc['valor_actual']}",
+        delta=f"{tc['var_1d']:+.4f} vs ayer"
+    )
+    m2.metric(
+        label="Inflación 12 meses",
+        value=f"{inf['valor_actual']}%",
+        delta=f"{inf['var_30d']:+.2f} vs mes anterior"
+    )
+    m3.metric(
+        label="Tasa interbancaria",
+        value=f"{tasa['valor_actual']}%",
+        delta=f"{tasa['var_30d']:+.2f} vs mes anterior"
+    )
 
-# ── Gráfica de tendencia ──
-st.subheader("Tendencia del tipo de cambio")
+    st.subheader("Tendencia del tipo de cambio")
+    df_tc = datos_diarios["tipo_cambio_venta"]
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=df_tc["fecha"],
+        y=df_tc["valor"],
+        mode="lines+markers",
+        name="Tipo de cambio venta",
+        line=dict(color="#E63946", width=2),
+        marker=dict(size=4)
+    ))
+    fig.update_layout(
+        xaxis_title="Fecha",
+        yaxis_title="S/ por USD",
+        hovermode="x unified",
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="white"),
+        margin=dict(l=0, r=0, t=10, b=0),
+        height=220,
+        yaxis=dict(tickformat=".4f")
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
-import plotly.graph_objects as go
+# ── Columna derecha: perfil + briefing ──
+with col_der:
+    st.subheader("¿Cómo te afecta a ti?")
+    st.write("Responde 3 preguntas para recibir un análisis personalizado.")
 
-df_tc = datos_diarios["tipo_cambio_venta"]
+    q1, q2, q3 = st.columns(3)
+    ahorros = q1.radio("¿Tus ahorros están en?", ["Soles", "Dólares", "Ambos"])
+    credito = q2.radio("¿Tienes crédito activo?", ["Sí", "No"])
+    negocio = q3.radio("¿Tienes negocio propio?", ["Sí", "No"])
 
-fig = go.Figure()
-fig.add_trace(go.Scatter(
-    x=df_tc["fecha"],
-    y=df_tc["valor"],
-    mode="lines+markers",
-    name="Tipo de cambio venta",
-    line=dict(color="#E63946", width=2),
-    marker=dict(size=4)
-))
+    if st.button("Generar mi briefing personalizado", type="primary"):
+        perfil = {
+            "ahorros": ahorros.lower(),
+            "credito": credito.lower(),
+            "negocio": negocio.lower()
+        }
 
-fig.update_layout(
-    xaxis_title="Fecha",
-    yaxis_title="S/ por USD",
-    hovermode="x unified",
-    plot_bgcolor="rgba(0,0,0,0)",
-    paper_bgcolor="rgba(0,0,0,0)",
-    font=dict(color="white"),
-    margin=dict(l=0, r=0, t=10, b=0),
-    yaxis=dict(tickformat=".4f")
-)
-
-st.plotly_chart(fig, use_container_width=True)
-
-# ── Perfil del usuario ──
-st.subheader("¿Cómo te afecta a ti?")
-st.write("Responde 3 preguntas para recibir un análisis personalizado.")
-
-col_a, col_b, col_c = st.columns(3)
-
-ahorros = col_a.radio(
-    "¿Tus ahorros están en?",
-    ["Soles", "Dólares", "Ambos"]
-)
-
-credito = col_b.radio(
-    "¿Tienes crédito activo?",
-    ["Sí", "No"]
-)
-
-negocio = col_c.radio(
-    "¿Tienes negocio propio?",
-    ["Sí", "No"]
-)
-
-if st.button("Generar mi briefing personalizado"):
-    perfil = {
-        "ahorros": ahorros.lower(),
-        "credito": credito.lower(),
-        "negocio": negocio.lower()
-    }
-
-    tipo_cambio_hoy  = tc["valor_actual"]
-    tipo_cambio_var1d = tc["var_1d"]
-    tipo_cambio_var7d = tc["var_7d"]
-    inflacion_hoy    = inf["valor_actual"]
-    tasa_hoy         = tasa["valor_actual"]
-
-    contexto = f"""
+        contexto = f"""
 DATOS ECONÓMICOS DEL BCRP HOY:
-- Tipo de cambio venta: S/ {tipo_cambio_hoy}
-- Variación vs ayer: {tipo_cambio_var1d:+.4f}
-- Variación vs semana pasada: {tipo_cambio_var7d:+.4f}
-- Inflación 12 meses: {inflacion_hoy}%
-- Tasa interbancaria: {tasa_hoy}%
+- Tipo de cambio venta: S/ {tc['valor_actual']}
+- Variación vs ayer: {tc['var_1d']:+.4f}
+- Variación vs semana pasada: {tc['var_7d']:+.4f}
+- Inflación 12 meses: {inf['valor_actual']}%
+- Tasa interbancaria: {tasa['valor_actual']}%
 
 PERFIL DEL USUARIO:
-- Ahorros en: {perfil["ahorros"]}
-- Tiene crédito activo: {perfil["credito"]}
-- Tiene negocio propio: {perfil["negocio"]}
+- Ahorros en: {perfil['ahorros']}
+- Tiene crédito activo: {perfil['credito']}
+- Tiene negocio propio: {perfil['negocio']}
 """
 
-    system_prompt = """
+        system_prompt = """
 Eres un asesor económico personal para ciudadanos peruanos.
-Explica en lenguaje simple y directo cómo los indicadores
-económicos del día afectan la situación específica del usuario.
+Responde ÚNICAMENTE con una tabla markdown con exactamente estas columnas:
+| Indicador | Situación | Impacto para ti | Acción recomendada |
 
-Reglas:
-- Usa lenguaje coloquial, como si hablaras con un amigo
-- Sé específico según el perfil del usuario
-- Máximo 4 puntos concretos con acción recomendada
-- No uses jerga económica sin explicarla
-- Aclara que no eres asesor financiero certificado
+Reglas de la tabla:
+- Fila 1: Tipo de cambio
+- Fila 2: Inflación
+- Fila 3: Tasa de interés
+- En "Situación" usa: 🟢 Favorable / 🟡 Neutral / 🔴 Desfavorable según el perfil del usuario
+- En "Impacto para ti" sé específico según el perfil — menciona si tiene ahorros, crédito o negocio
+- En "Acción recomendada" da una acción concreta y simple
+- Después de la tabla agrega UNA sola línea de conclusión en lenguaje coloquial
+- Termina con: "⚠️ Este análisis es informativo y no constituye asesoría financiera certificada."
 """
 
-    client = OpenAI()
+        client = OpenAI()
 
-    with st.spinner("Generando tu briefing personalizado..."):
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": contexto}
-            ]
-        )
+        with st.spinner("Generando tu briefing..."):
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user",   "content": contexto}
+                ]
+            )
 
-    briefing = response.choices[0].message.content
-    st.divider()
-    st.subheader("Tu briefing de hoy")
-    st.caption(f"Generado el {datetime.today().strftime('%d/%m/%Y')} con datos del BCRP")
-    st.markdown(briefing)
-    st.divider()
-    st.caption("Fuente de datos: Banco Central de Reserva del Perú (BCRP) · estadisticas.bcrp.gob.pe")
-    st.markdown(briefing)
+        briefing = response.choices[0].message.content
+        st.divider()
+        st.subheader("Tu briefing de hoy")
+        st.caption(f"Generado el {datetime.today().strftime('%d/%m/%Y %H:%M')}")
+        st.markdown(briefing)
+        st.caption("Fuente: Banco Central de Reserva del Perú (BCRP) · estadisticas.bcrp.gob.pe")
