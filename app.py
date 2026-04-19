@@ -17,6 +17,8 @@ st.set_page_config(
 st.markdown("""
     <style>
         .block-container { padding-top: 1rem; }
+        .stMarkdown table { font-size: 0.85rem; }
+        .stMarkdown td { padding: 6px 10px; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -168,19 +170,19 @@ with col_izq:
 
     m1, m2, m3 = st.columns(3)
     m1.metric(
-        label="Tipo de cambio venta",
-        value=f"S/ {tc['valor_actual']}",
-        delta=f"{tc['var_1d']:+.4f} vs ayer"
+    label="Tipo de cambio",
+    value=f"S/ {tc['valor_actual']}",
+    delta=f"{tc['var_1d']:+.4f} vs ayer"
     )
     m2.metric(
-        label="Inflación 12 meses",
-        value=f"{inf['valor_actual']}%",
-        delta=f"{inf['var_30d']:+.2f} vs mes anterior"
+    label="Inflación 12m",
+    value=f"{inf['valor_actual']}%",
+    delta=f"{inf['var_30d']:+.2f} vs mes ant."
     )
     m3.metric(
-        label="Tasa interbancaria",
-        value=f"{tasa['valor_actual']}%",
-        delta=f"{tasa['var_30d']:+.2f} vs mes anterior"
+    label="Tasa interbanc.",
+    value=f"{tasa['valor_actual']}%",
+    delta=f"{tasa['var_30d']:+.2f} vs mes ant."
     )
 
     st.subheader("Tendencia del tipo de cambio")
@@ -210,18 +212,36 @@ with col_izq:
 # ── Columna derecha: perfil + briefing ──
 with col_der:
     st.subheader("¿Cómo te afecta a ti?")
-    st.write("Responde 3 preguntas para recibir un análisis personalizado.")
+    st.write("Responde 4 preguntas para recibir un análisis personalizado.")
 
-    q1, q2, q3 = st.columns(3)
-    ahorros = q1.radio("¿Tus ahorros están en?", ["Soles", "Dólares", "Ambos"])
-    credito = q2.radio("¿Tienes crédito activo?", ["Sí", "No"])
-    negocio = q3.radio("¿Tienes negocio propio?", ["Sí", "No"])
+    q1, q2, q3, q4 = st.columns(4)
+
+    ahorros = q1.radio(
+        "¿Tienes ahorros?",
+        ["No tengo", "En soles", "En dólares", "En ambos"]
+    )
+
+    credito = q2.radio(
+        "¿Tipo de crédito?",
+        ["Ninguno", "Hipotecario", "Vehicular", "Personal"]
+    )
+
+    negocio = q3.radio(
+        "¿Tienes negocio?",
+        ["No", "Sí, local", "Sí, importador"]
+    )
+
+    empleo = q4.radio(
+        "¿Situación laboral?",
+        ["Empleado", "Independiente", "Desempleado"]
+    )
 
     if st.button("Generar mi briefing personalizado", type="primary"):
         perfil = {
-            "ahorros": ahorros.lower(),
-            "credito": credito.lower(),
-            "negocio": negocio.lower()
+            "ahorros": ahorros,
+            "credito": credito,
+            "negocio": negocio,
+            "empleo":  empleo
         }
 
         contexto = f"""
@@ -229,29 +249,70 @@ DATOS ECONÓMICOS DEL BCRP HOY:
 - Tipo de cambio venta: S/ {tc['valor_actual']}
 - Variación vs ayer: {tc['var_1d']:+.4f}
 - Variación vs semana pasada: {tc['var_7d']:+.4f}
-- Inflación 12 meses: {inf['valor_actual']}%
+- Variación vs hace 30 días: {tc['var_30d']:+.4f}
+- Inflación 12 meses: {inf['valor_actual']}% (subió {inf['var_30d']:+.2f} vs mes anterior)
 - Tasa interbancaria: {tasa['valor_actual']}%
 
 PERFIL DEL USUARIO:
-- Ahorros en: {perfil['ahorros']}
-- Tiene crédito activo: {perfil['credito']}
-- Tiene negocio propio: {perfil['negocio']}
+- Ahorros: {perfil['ahorros']}
+- Tipo de crédito: {perfil['credito']}
+- Negocio: {perfil['negocio']}
+- Situación laboral: {perfil['empleo']}
 """
 
         system_prompt = """
-Eres un asesor económico personal para ciudadanos peruanos.
-Responde ÚNICAMENTE con una tabla markdown con exactamente estas columnas:
-| Indicador | Situación | Impacto para ti | Acción recomendada |
+Eres un asesor económico personal para ciudadanos peruanos de clase media.
+Responde ÚNICAMENTE con este formato exacto para cada indicador:
 
-Reglas de la tabla:
-- Fila 1: Tipo de cambio
-- Fila 2: Inflación
-- Fila 3: Tasa de interés
-- En "Situación" usa: 🟢 Favorable / 🟡 Neutral / 🔴 Desfavorable según el perfil del usuario
-- En "Impacto para ti" sé específico según el perfil — menciona si tiene ahorros, crédito o negocio
-- En "Acción recomendada" da una acción concreta y simple
-- Después de la tabla agrega UNA sola línea de conclusión en lenguaje coloquial
-- Termina con: "⚠️ Este análisis es informativo y no constituye asesoría financiera certificada."
+### 🟡 Tipo de cambio — Neutral
+**Impacto para ti:**
+- bullet 1
+- bullet 2
+- bullet 3
+
+**Acción recomendada:**
+- bullet 1
+- bullet 2
+- bullet 3
+
+### 🔴 Inflación — Desfavorable
+**Impacto para ti:**
+- bullet 1
+- bullet 2
+- bullet 3
+
+**Acción recomendada:**
+- bullet 1
+- bullet 2
+- bullet 3
+
+### 🟢 Tasa de interés — Favorable
+**Impacto para ti:**
+- bullet 1
+- bullet 2
+- bullet 3
+
+**Acción recomendada:**
+- bullet 1
+- bullet 2
+- bullet 3
+
+REGLAS CRÍTICAS:
+- Reemplaza emoji y calificación según el perfil exacto del usuario
+- En "Impacto para ti": entre 3 y 4 bullets — todos útiles, ninguno de relleno
+- En "Acción recomendada": entre 3 y 5 bullets — todos útiles, ninguno de relleno, cada uno diferente al anterior
+- En "Impacto para ti": usa números reales del contexto, sé específico al perfil del usuario
+- En "Acción recomendada": cada bullet incluye qué hacer + cuándo + por qué con número concreto
+- Ejemplo bueno: "Compra alimentos no perecibles por mayor esta semana — en mercados mayoristas o tiendas de descuento ahorras hasta 30% vs supermercados tradicionales, y la inflación de 3.8% seguirá subiendo precios"
+- Ejemplo malo: "Compra alimentos no perecibles esta semana" — le falta el cómo y dónde
+- Las acciones deben responder: qué hacer + cómo hacerlo concretamente en Perú + cuándo + por qué
+- Menciona alternativas reales disponibles en Perú cuando aplique: mercados mayoristas, cooperativas de ahorro, CTS, AFP, bancos digitales como Yape/Plin, microfinanzas, SUNAFIL para trabajadores, Produce para emprendedores
+- No menciones marcas específicas — menciona el tipo de lugar o institución
+- NUNCA inventes cifras — solo usa números del contexto proporcionado
+- Sé específico al perfil: si no tiene ahorros habla de poder de compra, si tiene crédito hipotecario habla de su cuota, si es independiente habla de ajustar tarifas, si está desempleado habla de proteger lo que tiene
+
+Termina con una conclusión coloquial peruana — máximo 20 palabras.
+Luego: "⚠️ Análisis informativo. No es asesoría financiera certificada."
 """
 
         client = OpenAI()
@@ -268,6 +329,7 @@ Reglas de la tabla:
         briefing = response.choices[0].message.content
         st.divider()
         st.subheader("Tu briefing de hoy")
-        st.caption(f"Generado el {datetime.today().strftime('%d/%m/%Y %H:%M')}")
+        ultimo_dato = datos_diarios["tipo_cambio_venta"].iloc[-1]["fecha"].strftime("%d/%m/%Y")
+        st.caption(f"Tipo de cambio al {ultimo_dato} · Consulta generada: {datetime.today().strftime('%d/%m/%Y %H:%M')}")
         st.markdown(briefing)
         st.caption("Fuente: Banco Central de Reserva del Perú (BCRP) · estadisticas.bcrp.gob.pe")
