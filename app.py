@@ -150,13 +150,14 @@ def construir_resumen(datos_diarios, datos_mensuales):
 
 # ── Header ──
 st.title("🇵🇪 Pulso Económico Perú")
-st.caption(f"Datos del BCRP · Última actualización: {datetime.today().strftime('%d/%m/%Y %H:%M')}")
 st.info("📊 Los datos provienen del Banco Central de Reserva del Perú (BCRP). Este análisis es meramente informativo y referencial. Antes de tomar decisiones financieras importantes, consulta con un asesor financiero o especialista de tu confianza.")
-
 # ── Carga de datos ──
 with st.spinner("Cargando datos del BCRP..."):
     datos_diarios, datos_mensuales = cargar_datos()
     df_resumen = construir_resumen(datos_diarios, datos_mensuales)
+
+ultimo_dato = datos_diarios["tipo_cambio_venta"].iloc[-1]["fecha"].strftime("%d/%m/%Y")
+st.caption(f"Tipo de cambio al {ultimo_dato} · Consulta: {datetime.today().strftime('%d/%m/%Y %H:%M')}")
 
 tc   = df_resumen[df_resumen["indicador"] == "Tipo de cambio venta"].iloc[0]
 inf  = df_resumen[df_resumen["indicador"] == "Inflacion 12 meses"].iloc[0]
