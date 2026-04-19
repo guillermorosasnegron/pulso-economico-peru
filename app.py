@@ -151,7 +151,7 @@ def construir_resumen(datos_diarios, datos_mensuales):
 # ── Header ──
 st.title("🇵🇪 Pulso Económico Perú")
 st.caption(f"Datos del BCRP · Última actualización: {datetime.today().strftime('%d/%m/%Y %H:%M')}")
-st.info("Los datos provienen del BCRP. Este análisis es informativo y no constituye asesoría financiera certificada.")
+st.info("📊 Los datos provienen del Banco Central de Reserva del Perú (BCRP). Este análisis es meramente informativo y referencial. Antes de tomar decisiones financieras importantes, consulta con un asesor financiero o especialista de tu confianza.")
 
 # ── Carga de datos ──
 with st.spinner("Cargando datos del BCRP..."):
@@ -322,7 +322,7 @@ REGLAS CRÍTICAS:
 - Las recomendaciones deben orientarse a decisiones financieras activas: ahorrar, invertir, ajustar gastos, refinanciar, diversificar — no a recibir ayuda externa
 - Sé específico al perfil: si no tiene ahorros habla de poder de compra, si tiene crédito hipotecario habla de su cuota, si es independiente habla de ajustar tarifas, si está desempleado habla de proteger lo que tiene
 
-Termina ÚNICAMENTE con: "⚠️ Análisis informativo. No es asesoría financiera certificada."
+Termina ÚNICAMENTE con: "⚠️ Este análisis es meramente informativo y referencial. Antes de tomar decisiones financieras importantes, consulta con un especialista de tu confianza."
 NO agregues frases motivacionales, de ánimo, ni despedidas.
 """
 
