@@ -272,7 +272,7 @@ Responde ÚNICAMENTE con este formato exacto para cada indicador:
 - bullet 2
 - bullet 3
 
-**Acción recomendada:**
+**Qué considerar:**
 - bullet 1
 - bullet 2
 - bullet 3
@@ -283,7 +283,7 @@ Responde ÚNICAMENTE con este formato exacto para cada indicador:
 - bullet 2
 - bullet 3
 
-**Acción recomendada:**
+**Qué considerar:**
 - bullet 1
 - bullet 2
 - bullet 3
@@ -294,37 +294,22 @@ Responde ÚNICAMENTE con este formato exacto para cada indicador:
 - bullet 2
 - bullet 3
 
-**Acción recomendada:**
+**Qué considerar:**
 - bullet 1
 - bullet 2
 - bullet 3
 
 REGLAS CRÍTICAS:
 - Reemplaza emoji y calificación según el perfil exacto del usuario
-- En "Impacto para ti": entre 3 y 4 bullets — todos útiles, ninguno de relleno
-- En "Acción recomendada": entre 3 y 5 bullets — todos útiles, ninguno de relleno, cada uno diferente al anterior
-- En "Impacto para ti": usa números reales del contexto, sé específico al perfil del usuario
-- En "Acción recomendada": cada bullet incluye qué hacer + cuándo + por qué con número concreto
-- Ejemplo bueno: "Compra alimentos no perecibles por mayor esta semana — en mercados mayoristas o tiendas de descuento ahorras hasta 30% vs supermercados tradicionales, y la inflación de 3.8% seguirá subiendo precios"
-- Ejemplo malo: "Compra alimentos no perecibles esta semana" — le falta el cómo y dónde
-- Las acciones deben responder: qué hacer + cómo hacerlo concretamente en Perú + cuándo + por qué
-- Menciona alternativas reales disponibles en Perú cuando aplique: mercados mayoristas, cooperativas de ahorro, CTS, AFP, bancos digitales como Yape/Plin, microfinanzas, SUNAFIL para trabajadores, Produce para emprendedores
-- Cada acción debe ser SMART: Específica (qué exactamente), Medible (cuánto, qué porcentaje), Alcanzable (realista para clase media peruana), Relevante (al perfil del usuario), con Tiempo definido (esta semana, este mes, antes de X)
-- Ejemplo SMART bueno: "Destina el 10% de tu próximo ingreso a una cuenta de ahorros en un banco digital como BCP o Interbank esta semana — con inflación a 3.8% cada sol que no rinde pierde valor"
-- Ejemplo NO SMART: "Considera ahorrar para protegerte contra la inflación" — no dice cuánto, cuándo ni dónde
-- No menciones marcas específicas — menciona el tipo de lugar o institución
-- NUNCA inventes cifras ni datos — solo usa los números exactos del contexto proporcionado
-- NUNCA hagas inferencias sobre productos financieros, tasas de préstamos, o programas específicos que no estén en el contexto
-- Si no tienes el dato exacto, NO lo menciones — es mejor omitirlo que inventarlo
-- La tasa interbancaria NO es la tasa que le ofrecen al usuario — no la uses para recomendar préstamos específicos
-- Solo puedes recomendar acciones basadas en los 5 datos que tienes: tipo de cambio, variación diaria, variación semanal, inflación 12 meses y tasa interbancaria
-- NUNCA recomiendes buscar asistencia social, subsidios, bonos, dinero del gobierno ni programas de ayuda económica directa — no es el perfil del usuario objetivo
-- Sí puedes mencionar capacitaciones, cursos técnicos, o mejora de habilidades cuando sea relevante al perfil
-- Las recomendaciones deben orientarse a decisiones financieras activas: ahorrar, invertir, ajustar gastos, refinanciar, diversificar — no a recibir ayuda externa
-- Sé específico al perfil: si no tiene ahorros habla de poder de compra, si tiene crédito hipotecario habla de su cuota, si es independiente habla de ajustar tarifas, si está desempleado habla de proteger lo que tiene
+- "Qué considerar" en vez de "Acción recomendada" — el tono es orientativo, no prescriptivo
+- NUNCA uses porcentajes, precios en soles, ni plazos que no estén en los 5 datos del contexto
+- Los únicos números permitidos son los del contexto: S/3.436, -0.003, +0.0539, 3.8%, +1.59, 4.25%
+- Los bullets deben explicar el impacto en lenguaje simple y orientar sin prescribir acciones específicas
+- Ejemplo correcto: "Con inflación a 3.8%, tus gastos básicos tienden a subir — vale la pena revisar tu presupuesto"
+- Ejemplo incorrecto: "Destina el 10% de tu salario a ahorros" — número inventado
+- Sé específico al perfil: si no tiene ahorros habla de poder de compra, si tiene hipoteca habla de su cuota
 
 Termina ÚNICAMENTE con: "⚠️ Este análisis es meramente informativo y referencial. Antes de tomar decisiones financieras importantes, consulta con un especialista de tu confianza."
-NO agregues frases motivacionales, de ánimo, ni despedidas.
 """
 
         client = OpenAI()
